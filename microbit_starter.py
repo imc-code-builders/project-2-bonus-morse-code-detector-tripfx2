@@ -1,42 +1,58 @@
 from microbit import *
 import music
 
+# Dictionary to map Morse sequences to characters
 morse_dict = {
-    'dot-dash': 'A', 'dash-dot-dot-dot': 'B', 'dash-dot-dash-dot': 'C',
-    'dash-dot-dot': 'D', 'dot': 'E', 'dot-dot-dash-dot': 'F',
-    'dash-dash-dot': 'G', 'dot-dot-dot-dot': 'H', 'dot-dot': 'I',
-    'dot-dash-dash-dash': 'J', 'dash-dot-dash': 'K', 'dot-dash-dot-dot': 'L',
-    'dash-dash': 'M', 'dash-dot': 'N', 'dash-dash-dash': 'O',
-    'dot-dash-dash-dot': 'P', 'dash-dash-dot-dash': 'Q', 'dot-dash-dot': 'R',
-    'dot-dot-dot': 'S', 'dash': 'T', 'dot-dot-dash': 'U',
-    'dot-dot-dot-dash': 'V', 'dot-dash-dash': 'W', 'dash-dot-dot-dash': 'X',
-    'dash-dot-dash-dash': 'Y', 'dash-dash-dot-dot': 'Z',
-    'dot-dash-dash-dash-dash': '1', 'dot-dot-dash-dash-dash': '2',
-    'dot-dot-dot-dash-dash': '3', 'dot-dot-dot-dot-dash': '4',
-    'dot-dot-dot-dot-dot': '5', 'dash-dot-dot-dot-dot': '6',
-    'dash-dash-dot-dot-dot': '7', 'dash-dash-dash-dot-dot': '8',
-    'dash-dash-dash-dash-dot': '9', 'dash-dash-dash-dash-dash': '0'
+    '.-': 'A', '-...': 'B', '-.-.': 'C', '-..': 'D', '.': 'E', '..-.': 'F',
+    '--.': 'G', '....': 'H', '..': 'I', '.---': 'J', '-.-': 'K', '.-..': 'L',
+    '--': 'M', '-.': 'N', '---': 'O', '.--.': 'P', '--.-': 'Q', '.-.': 'R',
+    '...': 'S', '-': 'T', '..-': 'U', '...-': 'V', '.--': 'W', '-..-': 'X',
+    '-.--': 'Y', '--..': 'Z', '.----': '1', '..---': '2', '...--': '3',
+    '....-': '4', '.....': '5', '-....': '6', '--...': '7', '---..': '8',
+    '----.': '9', '-----': '0'
 }
 
 current_symbol = ''
 message = []
 
 while True:
-    display.clear()
+    # Task 4: Shake to scroll/show the full message
+    if accelerometer.was_gesture('shake'):
+        if message:
+            display.scroll("".join(message))
+        else:
+            display.show(Image.NO) # Show X if message is empty
+        sleep(500)
 
-    # TASK 4: Shake to scroll the full message
-
-
-    # TASK 2: Decode current_symbol when logo is touched
+    # Task 2: Decode current_symbol when logo is touched
     if pin_logo.is_touched():
-        print(current_symbol)
+        if current_symbol in morse_dict:
+            letter = morse_dict[current_symbol]
+            message.append(letter)
+            display.show(letter) # Display the decoded letter
+            music.pitch(600, 200) # Sound for decoding
+            sleep(500)
+        else:
+            display.show(Image.NO) # Invalid code
+            sleep(500)
+        current_symbol = '' # Reset for next letter
 
-    # TASK 1: Record dots and dashes (Button A = dot, Button B = dash)
-    # Build current_symbol as a string like 'dot-dash-dot'
+    # Task 1 & 3: Record dots and dashes (Button A=dot, B=dash) & Sound/Display
     elif button_a.was_pressed():
-        pass
+        current_symbol += '.'
+        display.show('.')
+        music.pitch(800, 100) # Short sound for dot
+        sleep(100)
+        display.clear()
 
     elif button_b.was_pressed():
-        pass
-
-    # TASK 3: Add display and sound to each of the above
+        current_symbol += '-'
+        display.show('-')
+        music.pitch(800, 300) # Long sound for dash
+        sleep(100)
+        display.clear()
+        
+    # Optional: Display current partial symbol (visual feedback)
+    # This helps see what you are building
+    if current_symbol and not display.get_pixel(2,2):
+        display.set_pixel(2,2, 5) # Dim center dot to show building
